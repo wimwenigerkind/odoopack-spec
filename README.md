@@ -57,3 +57,32 @@ if err := name.ValidPackage("acme/health-check"); err != nil {
 }
 dir := name.ModuleName("acme/health-check") // acme_health_check
 ```
+
+## Digests
+
+The package `digest` holds the content digest of an archive, written `sha256:<64 hex characters>`. Only sha256 is supported. Upper case hex is accepted and normalized to lower case, so `String()` returns one spelling per digest and two digests of the same content compare equal with `==`.
+
+```go
+import "github.com/wimwenigerkind/odoopack-spec/digest"
+
+d, err := digest.Parse("sha256:ece96e65881389c3ef6538ea26b9d7149e8e0af042c828d17283c6b76c633543")
+err = d.Verify(file) // reports the expected and the actual digest on a mismatch
+```
+
+## Registry API
+
+The package `registryapi` holds the response of `GET /registry/v1/addons/{name}` as `Addon`, `Version` and `Dep`, with the JSON field names the registry sends today. Decoding keeps every field as sent; `Validate` checks it:
+
+- **Addon**: the name passes `name.ValidPackage` and every version is valid.
+- **Version**: the version is canonical, `type` is `zip` or `git`, `url` is absolute `https` (`http` only for `localhost`, `127.0.0.1` and `::1`). A zip has a `shasum` that `digest.Parse` accepts; a git version has a `reference` that is a full commit id (40 lower case hex characters, or 64 for a repository in the sha256 object format), and a zip that sends a reference follows the same rule.
+- **Dep**: the module passes `name.ValidModule`, the package (sent only when `access` is `ok`) passes `name.ValidPackage`, and `access` is `ok`, `forbidden` (the addon exists but the caller cannot see it) or `external` (no addon provides the module, e.g. `base`).
+
+`Validate` reports the problems of all versions at once, each naming its version. `ValidVersions` returns the valid versions and the same problems, for a caller that skips a broken version instead of rejecting the addon.
+
+```go
+import "github.com/wimwenigerkind/odoopack-spec/registryapi"
+
+var a registryapi.Addon
+err := json.Unmarshal(body, &a)
+versions, problems := a.ValidVersions()
+```
