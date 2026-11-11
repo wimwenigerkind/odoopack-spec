@@ -1,6 +1,6 @@
-# odoopack-semver
+# odoopack-spec
 
-Odoo-aware version parsing, comparison and resolution for the odoopack ecosystem, shared by the registry and the CLI.
+The rules the odoopack CLI and the odoopack registry share, so that neither side keeps its own copy. The package `version` holds the Odoo-aware version parsing, comparison and resolution.
 
 An Odoo module version follows the convention `<series>.<major>.<minor>.<patch>` where the series is the two-part Odoo version:
 
@@ -32,10 +32,10 @@ Releases sort by series first, then by module semver; dev versions sort below al
 ## Usage
 
 ```go
-import odoosemver "github.com/wimwenigerkind/odoopack-semver"
+import "github.com/wimwenigerkind/odoopack-spec/version"
 
-v, err := odoosemver.Parse("19.0.1.2.3")
+v, err := version.Parse("19.0.1.2.3")
 
-c, _ := odoosemver.ParseConstraint("19.0")
-best, ok := odoosemver.Resolve(c, versions) // highest 19.0 release
+c, _ := version.ParseConstraint("19.0")
+best, ok := version.Resolve(c, versions) // highest 19.0 release
 ```

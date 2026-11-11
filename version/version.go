@@ -1,4 +1,4 @@
-package odoosemver
+package version
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package odoosemver
+package version
 
 func Resolve(c Constraint, versions []Version) (Version, bool) {
 	var best Version
