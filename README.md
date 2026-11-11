@@ -39,3 +39,21 @@ v, err := version.Parse("19.0.1.2.3")
 c, _ := version.ParseConstraint("19.0")
 best, ok := version.Resolve(c, versions) // highest 19.0 release
 ```
+
+## Names
+
+The package `name` holds the rules for package and module names.
+
+- **Package**: `vendor/name` or `name`. Each part uses lowercase ASCII letters, digits, `_` and `-` and starts with a letter or digit, e.g. `acme/health-check`.
+- **Module**: the Odoo module directory, lowercase ASCII letters, digits and `_`.
+
+Both are at most 128 characters. A package maps to its module by turning `/` and `-` into `_`, so `acme/health-check` installs as `acme_health_check`. Two packages such as `a-b` and `a_b` map to the same module and cannot be installed side by side.
+
+```go
+import "github.com/wimwenigerkind/odoopack-spec/name"
+
+if err := name.ValidPackage("acme/health-check"); err != nil {
+	// reject
+}
+dir := name.ModuleName("acme/health-check") // acme_health_check
+```
