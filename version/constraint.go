@@ -24,13 +24,13 @@ type Constraint struct {
 func ParseConstraint(s string) (Constraint, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
-		return Constraint{}, fmt.Errorf("odoosemver: empty constraint")
+		return Constraint{}, fmt.Errorf("version: empty constraint")
 	}
 
 	if strings.HasPrefix(s, devPrefix) {
 		branch := s[len(devPrefix):]
-		if branch == "" {
-			return Constraint{}, fmt.Errorf("odoosemver: empty dev branch in %q", s)
+		if err := validateBranch(branch); err != nil {
+			return Constraint{}, fmt.Errorf("version: invalid dev branch in %q: %w", s, err)
 		}
 		return Constraint{kind: cDev, branch: branch, raw: s}, nil
 	}
@@ -39,7 +39,7 @@ func ParseConstraint(s string) (Constraint, error) {
 	case 1:
 		series, ok := parseSeries(s)
 		if !ok {
-			return Constraint{}, fmt.Errorf("odoosemver: invalid series constraint %q", s)
+			return Constraint{}, fmt.Errorf("version: invalid series constraint %q", s)
 		}
 		return Constraint{kind: cSeries, series: series, raw: s}, nil
 	case 4:
@@ -49,7 +49,7 @@ func ParseConstraint(s string) (Constraint, error) {
 		}
 		return Constraint{kind: cExact, exact: v, raw: s}, nil
 	default:
-		return Constraint{}, fmt.Errorf("odoosemver: constraint %q must be an exact version (a.b.c.d.e), a series (a.b), or dev-<branch>", s)
+		return Constraint{}, fmt.Errorf("version: constraint %q must be an exact version (a.b.c.d.e), a series (a.b), or dev-<branch>", s)
 	}
 }
 
