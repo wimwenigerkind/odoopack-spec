@@ -137,9 +137,7 @@ func (d Dep) validate() error {
 }
 
 // validURL allows plain http only for a registry on the local machine, so a
-// development setup works without a certificate. The URL ends up in the
-// lockfile a project commits, so it must not carry a secret or expire: no
-// user info, no query, no fragment.
+// development setup works without a certificate.
 func validURL(s string) error {
 	u, err := url.Parse(s)
 	if err != nil {
@@ -169,8 +167,7 @@ func validURL(s string) error {
 	return fmt.Errorf("url %s must use https", redact(s))
 }
 
-// redact keeps user info and the query out of an error, which may end up in
-// a log: either can hold a token.
+// redact drops the user too, not only the password: it can be a token.
 func redact(s string) string {
 	u, err := url.Parse(s)
 	if err != nil {
