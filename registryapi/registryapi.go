@@ -36,7 +36,7 @@ type Version struct {
 	Version   string `json:"version"`
 	Type      string `json:"type"`
 	URL       string `json:"url"`
-	Shasum    string `json:"shasum,omitempty"`
+	Digest    string `json:"digest,omitempty"`
 	Reference string `json:"reference,omitempty"`
 	Depends   []Dep  `json:"depends,omitempty"`
 }
@@ -94,8 +94,8 @@ func (v Version) validate() error {
 	}
 	switch v.Type {
 	case TypeZip:
-		if _, err := digest.Parse(v.Shasum); err != nil {
-			return fmt.Errorf("shasum: %w", err)
+		if _, err := digest.Parse(v.Digest); err != nil {
+			return fmt.Errorf("digest: %w", err)
 		}
 		if v.Reference != "" && !isCommit(v.Reference) {
 			return fmt.Errorf("reference %q must be a full commit id, 40 or 64 lowercase hex characters", v.Reference)
@@ -104,9 +104,9 @@ func (v Version) validate() error {
 		if !isCommit(v.Reference) {
 			return fmt.Errorf("reference %q must be a full commit id, 40 or 64 lowercase hex characters", v.Reference)
 		}
-		if v.Shasum != "" {
-			if _, err := digest.Parse(v.Shasum); err != nil {
-				return fmt.Errorf("shasum: %w", err)
+		if v.Digest != "" {
+			if _, err := digest.Parse(v.Digest); err != nil {
+				return fmt.Errorf("digest: %w", err)
 			}
 		}
 	default:

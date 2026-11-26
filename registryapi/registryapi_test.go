@@ -19,7 +19,7 @@ func zip() registryapi.Version {
 		Version:   "19.0.1.2.3",
 		Type:      registryapi.TypeZip,
 		URL:       "https://registry.example.com/registry/v1/zipball/f1740dd9-ca0e-42fd-a63b-b553d3fd3882/" + hash,
-		Shasum:    "sha256:" + hash,
+		Digest:    "sha256:" + hash,
 		Reference: commit,
 	}
 }
@@ -32,9 +32,9 @@ func TestVersionValidate(t *testing.T) {
 		{"zip", func(v *registryapi.Version) {}},
 		{"dev version", func(v *registryapi.Version) { v.Version = "dev-main" }},
 		{"zip without reference", func(v *registryapi.Version) { v.Reference = "" }},
-		{"uppercase shasum", func(v *registryapi.Version) { v.Shasum = "sha256:" + strings.ToUpper(hash) }},
-		{"git", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Shasum = "" }},
-		{"git with shasum", func(v *registryapi.Version) { v.Type = registryapi.TypeGit }},
+		{"uppercase digest", func(v *registryapi.Version) { v.Digest = "sha256:" + strings.ToUpper(hash) }},
+		{"git", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Digest = "" }},
+		{"git with digest", func(v *registryapi.Version) { v.Type = registryapi.TypeGit }},
 		{"zip sha256 object format reference", func(v *registryapi.Version) { v.Reference = hash }},
 		{"git sha256 object format reference", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Reference = hash }},
 		{"http localhost", func(v *registryapi.Version) { v.URL = "http://localhost:6969/z" }},
@@ -78,17 +78,17 @@ func TestVersionValidate(t *testing.T) {
 		{"ftp", func(v *registryapi.Version) { v.URL = "ftp://registry.example.com/z" }},
 		{"file", func(v *registryapi.Version) { v.URL = "file:///tmp/z.zip" }},
 		{"unparsable url", func(v *registryapi.Version) { v.URL = "https://registry.example.com/%zz" }},
-		{"zip without shasum", func(v *registryapi.Version) { v.Shasum = "" }},
-		{"zip bare hex shasum", func(v *registryapi.Version) { v.Shasum = hash }},
-		{"zip sha512 shasum", func(v *registryapi.Version) { v.Shasum = "sha512:" + hash + hash }},
-		{"zip short shasum", func(v *registryapi.Version) { v.Shasum = "sha256:" + hash[:63] }},
+		{"zip without digest", func(v *registryapi.Version) { v.Digest = "" }},
+		{"zip bare hex digest", func(v *registryapi.Version) { v.Digest = hash }},
+		{"zip sha512 digest", func(v *registryapi.Version) { v.Digest = "sha512:" + hash + hash }},
+		{"zip short digest", func(v *registryapi.Version) { v.Digest = "sha256:" + hash[:63] }},
 		{"zip short reference", func(v *registryapi.Version) { v.Reference = commit[:7] }},
 		{"zip uppercase reference", func(v *registryapi.Version) { v.Reference = strings.ToUpper(commit) }},
 		{"git without reference", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Reference = "" }},
 		{"git branch reference", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Reference = "main" }},
 		{"git non hex reference", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Reference = commit[:39] + "g" }},
 		{"git uppercase reference", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Reference = strings.ToUpper(commit) }},
-		{"git bad shasum", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Shasum = "sha256:x" }},
+		{"git bad digest", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Digest = "sha256:x" }},
 		{"git long reference", func(v *registryapi.Version) { v.Type = registryapi.TypeGit; v.Reference = commit + "0" }},
 		{"dep empty module", func(v *registryapi.Version) {
 			v.Depends = []registryapi.Dep{{Module: "", Access: registryapi.AccessExternal}}
@@ -132,7 +132,7 @@ func TestAddonValidate(t *testing.T) {
 	bad.Type = "tar"
 	worse := zip()
 	worse.Version = "dev-x"
-	worse.Shasum = ""
+	worse.Digest = ""
 
 	tests := []struct {
 		name      string
@@ -192,14 +192,14 @@ func TestDecodeRegistryResponse(t *testing.T) {
 	}{
 		{
 			name: "zip version",
-			body: `{"name":"acme/essentials","versions":[{"version":"dev-main","type":"zip","url":"http://localhost:6969/registry/v1/zipball/f1740dd9-ca0e-42fd-a63b-b553d3fd3882/ece96e65881389c3ef6538ea26b9d7149e8e0af042c828d17283c6b76c633543","shasum":"sha256:ece96e65881389c3ef6538ea26b9d7149e8e0af042c828d17283c6b76c633543","reference":"6b6c390a387c81ee604b602e49ca6c35646cc619"}]}`,
+			body: `{"name":"acme/essentials","versions":[{"version":"dev-main","type":"zip","url":"http://localhost:6969/registry/v1/zipball/f1740dd9-ca0e-42fd-a63b-b553d3fd3882/ece96e65881389c3ef6538ea26b9d7149e8e0af042c828d17283c6b76c633543","digest":"sha256:ece96e65881389c3ef6538ea26b9d7149e8e0af042c828d17283c6b76c633543","reference":"6b6c390a387c81ee604b602e49ca6c35646cc619"}]}`,
 			want: registryapi.Addon{
 				Name: "acme/essentials",
 				Versions: []registryapi.Version{{
 					Version:   "dev-main",
 					Type:      "zip",
 					URL:       "http://localhost:6969/registry/v1/zipball/f1740dd9-ca0e-42fd-a63b-b553d3fd3882/" + hash,
-					Shasum:    "sha256:" + hash,
+					Digest:    "sha256:" + hash,
 					Reference: commit,
 				}},
 			},
@@ -209,14 +209,14 @@ func TestDecodeRegistryResponse(t *testing.T) {
 			// a visible addon gets its package and "ok", a hidden one only
 			// "forbidden", a module no addon provides "external".
 			name: "with depends",
-			body: `{"name":"acme/health-check","versions":[{"version":"19.0.1.0.0","type":"zip","url":"https://registry.example.com/registry/v1/zipball/f1740dd9-ca0e-42fd-a63b-b553d3fd3882/ece96e65881389c3ef6538ea26b9d7149e8e0af042c828d17283c6b76c633543","shasum":"sha256:ece96e65881389c3ef6538ea26b9d7149e8e0af042c828d17283c6b76c633543","reference":"6b6c390a387c81ee604b602e49ca6c35646cc619","depends":[{"module":"base","access":"external"},{"module":"acme_essentials","package":"acme/essentials","access":"ok"},{"module":"acme_warranty","access":"forbidden"}]}]}`,
+			body: `{"name":"acme/health-check","versions":[{"version":"19.0.1.0.0","type":"zip","url":"https://registry.example.com/registry/v1/zipball/f1740dd9-ca0e-42fd-a63b-b553d3fd3882/ece96e65881389c3ef6538ea26b9d7149e8e0af042c828d17283c6b76c633543","digest":"sha256:ece96e65881389c3ef6538ea26b9d7149e8e0af042c828d17283c6b76c633543","reference":"6b6c390a387c81ee604b602e49ca6c35646cc619","depends":[{"module":"base","access":"external"},{"module":"acme_essentials","package":"acme/essentials","access":"ok"},{"module":"acme_warranty","access":"forbidden"}]}]}`,
 			want: registryapi.Addon{
 				Name: "acme/health-check",
 				Versions: []registryapi.Version{{
 					Version:   "19.0.1.0.0",
 					Type:      "zip",
 					URL:       "https://registry.example.com/registry/v1/zipball/f1740dd9-ca0e-42fd-a63b-b553d3fd3882/" + hash,
-					Shasum:    "sha256:" + hash,
+					Digest:    "sha256:" + hash,
 					Reference: commit,
 					Depends: []registryapi.Dep{
 						{Module: "base", Access: "external"},

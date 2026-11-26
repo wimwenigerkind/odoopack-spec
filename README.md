@@ -74,7 +74,7 @@ err = d.Verify(file) // reports the expected and the actual digest on a mismatch
 The package `registryapi` holds the response of `GET /registry/v1/addons/{name}` as `Addon`, `Version` and `Dep`, with the JSON field names the registry sends today. Decoding keeps every field as sent; `Validate` checks it:
 
 - **Addon**: the name passes `name.ValidPackage` and every version is valid.
-- **Version**: the version is canonical, `type` is `zip` or `git`, `url` is absolute `https` (`http` only for `localhost`, `127.0.0.1` and `::1`). A zip has a `shasum` that `digest.Parse` accepts; a git version has a `reference` that is a full commit id (40 lower case hex characters, or 64 for a repository in the sha256 object format), and a zip that sends a reference follows the same rule.
+- **Version**: the version is canonical, `type` is `zip` or `git`, `url` is absolute `https` (`http` only for `localhost`, `127.0.0.1` and `::1`). A zip has a `digest` that `digest.Parse` accepts; a git version has a `reference` that is a full commit id (40 lower case hex characters, or 64 for a repository in the sha256 object format), and a zip that sends a reference follows the same rule.
 - **Dep**: the module passes `name.ValidModule`, the package (sent only when `access` is `ok`) passes `name.ValidPackage`, and `access` is `ok`, `forbidden` (the addon exists but the caller cannot see it) or `external` (no addon provides the module, e.g. `base`).
 
 `Validate` reports the problems of all versions at once, each naming its version. `ValidVersions` returns the valid versions and the same problems, for a caller that skips a broken version instead of rejecting the addon.
