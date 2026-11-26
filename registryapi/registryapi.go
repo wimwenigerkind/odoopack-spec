@@ -168,10 +168,14 @@ func validURL(s string) error {
 }
 
 // redact drops the user too, not only the password: it can be a token.
+// Without "//" Go keeps user and password in Opaque.
 func redact(s string) string {
 	u, err := url.Parse(s)
 	if err != nil {
 		return "(invalid url)"
+	}
+	if u.Opaque != "" {
+		return "(opaque url)"
 	}
 	if u.User != nil {
 		u.User = url.User("REDACTED")

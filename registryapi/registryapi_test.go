@@ -81,6 +81,7 @@ func TestVersionValidate(t *testing.T) {
 		{"url with token as user", func(v *registryapi.Version) { v.URL = "https://secret@cdn.example.com/z.zip" }},
 		{"url with signed query", func(v *registryapi.Version) { v.URL = "https://cdn.example.com/z.zip?X-Amz-Signature=secret" }},
 		{"url with fragment", func(v *registryapi.Version) { v.URL = "https://cdn.example.com/z.zip#secret" }},
+		{"url with credentials without slashes", func(v *registryapi.Version) { v.URL = "https:user:secret@cdn.example.com/z.zip" }},
 		{"unparsable url", func(v *registryapi.Version) { v.URL = "https://registry.example.com/%zz" }},
 		{"zip without digest", func(v *registryapi.Version) { v.Digest = "" }},
 		{"zip bare hex digest", func(v *registryapi.Version) { v.Digest = hash }},
