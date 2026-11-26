@@ -77,6 +77,10 @@ func TestVersionValidate(t *testing.T) {
 		{"http 127.0.0.2", func(v *registryapi.Version) { v.URL = "http://127.0.0.2/z" }},
 		{"ftp", func(v *registryapi.Version) { v.URL = "ftp://registry.example.com/z" }},
 		{"file", func(v *registryapi.Version) { v.URL = "file:///tmp/z.zip" }},
+		{"url with credentials", func(v *registryapi.Version) { v.URL = "https://user:secret@cdn.example.com/z.zip" }},
+		{"url with token as user", func(v *registryapi.Version) { v.URL = "https://secret@cdn.example.com/z.zip" }},
+		{"url with signed query", func(v *registryapi.Version) { v.URL = "https://cdn.example.com/z.zip?X-Amz-Signature=secret" }},
+		{"url with fragment", func(v *registryapi.Version) { v.URL = "https://cdn.example.com/z.zip#secret" }},
 		{"unparsable url", func(v *registryapi.Version) { v.URL = "https://registry.example.com/%zz" }},
 		{"zip without digest", func(v *registryapi.Version) { v.Digest = "" }},
 		{"zip bare hex digest", func(v *registryapi.Version) { v.Digest = hash }},
@@ -122,6 +126,9 @@ func TestVersionValidate(t *testing.T) {
 		}
 		if !strings.HasPrefix(err.Error(), "registryapi: version ") {
 			t.Errorf("%s: Validate() = %q, want prefix %q", tc.name, err, "registryapi: version ")
+		}
+		if strings.Contains(err.Error(), "secret") {
+			t.Errorf("%s: error %v leaks the credentials", tc.name, err)
 		}
 	}
 }

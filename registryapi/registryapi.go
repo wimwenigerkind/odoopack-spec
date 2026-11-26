@@ -137,14 +137,24 @@ func (d Dep) validate() error {
 }
 
 // validURL allows plain http only for a registry on the local machine, so a
-// development setup works without a certificate.
+// development setup works without a certificate. The URL ends up in the
+// lockfile a project commits, so it must not carry a secret or expire: no
+// user info, no query, no fragment.
 func validURL(s string) error {
 	u, err := url.Parse(s)
 	if err != nil {
-		return fmt.Errorf("url %q: %w", s, err)
+		return fmt.Errorf("url %s is not a valid url", redact(s))
 	}
 	if !u.IsAbs() || u.Host == "" {
-		return fmt.Errorf("url %q must be absolute", s)
+		return fmt.Errorf("url %s must be absolute", redact(s))
+	}
+	switch {
+	case u.User != nil:
+		return fmt.Errorf("url %s must not contain credentials", redact(s))
+	case u.RawQuery != "" || u.ForceQuery:
+		return fmt.Errorf("url %s must not have a query, which would expire or carry a token", redact(s))
+	case u.Fragment != "" || strings.Contains(s, "#"):
+		return fmt.Errorf("url %s must not have a fragment", redact(s))
 	}
 	switch u.Scheme {
 	case "https":
@@ -154,9 +164,27 @@ func validURL(s string) error {
 		case "localhost", "127.0.0.1", "::1":
 			return nil
 		}
-		return fmt.Errorf("url %q must use https, http is only allowed for localhost", s)
+		return fmt.Errorf("url %s must use https, http is only allowed for localhost", redact(s))
 	}
-	return fmt.Errorf("url %q must use https", s)
+	return fmt.Errorf("url %s must use https", redact(s))
+}
+
+// redact keeps user info and the query out of an error, which may end up in
+// a log: either can hold a token.
+func redact(s string) string {
+	u, err := url.Parse(s)
+	if err != nil {
+		return "(invalid url)"
+	}
+	if u.User != nil {
+		u.User = url.User("REDACTED")
+	}
+	if u.RawQuery != "" {
+		u.RawQuery = "REDACTED"
+	}
+	u.Fragment = ""
+	u.RawFragment = ""
+	return u.String()
 }
 
 // isCommit accepts a full commit id as git prints it: 40 hex characters for
